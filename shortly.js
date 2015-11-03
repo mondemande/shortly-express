@@ -41,6 +41,7 @@ app.use(session(sess));
 
 
 function restrict(req, res, next) {
+  console.log(req.session.userId)
   if (req.session.userId) {
     next();
   } else {
@@ -133,7 +134,6 @@ app.post('/signUp', function(req, res) {
     });
 
     user.save().then(function() {
-      console.log(db.knex('users').where('username', '=', username).select('password'));
       return res.redirect('/login');
     });
   });
@@ -157,11 +157,11 @@ app.post('/logIn', function(req, res) {
     } else {
       user.comparePassword(password, function(isTrue) {
         if (isTrue) {
-          req.session.reload(function() {
+          req.session.regenerate(function() {
             req.session.userId = user.id;
             res.redirect('/');
           });
-          req.session.save();
+          // req.session.save();
         } else {
           console.log("Password is wrong");
           res.redirect('/login');
@@ -182,6 +182,13 @@ app.post('/logIn', function(req, res) {
   // else redirect login
 });
 
+app.get('/logOut', restrict,function(req, res) {
+  req.session.destroy(function() {
+    console.log("Yo");
+    res.redirect('/login');
+
+  });
+});
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
