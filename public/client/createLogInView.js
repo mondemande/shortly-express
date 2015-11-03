@@ -18,6 +18,9 @@ Shortly.createLogInView = Backbone.View.extend({
 		// gets .text() -> password
 		var $username = this.$el.find('form#username').val();
 		var $password = this.$el.find('form#password').val();
+
+		
+
 		console.log('username', 'password')
 
 		// var link = new Shortly.Link({ url: $form.val() })
