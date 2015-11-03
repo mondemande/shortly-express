@@ -63,7 +63,7 @@ app.get('/create', restrict,
 
 app.get('/links', restrict,
   function(req, res) {
-    // Links.reset().query('where', 'user_id', '=', req.session.userId).fetch().then
+    // Links.reset().query('where', 'user_id', '=', req.session.userId).fetch().then(function(links) {
     Links.reset().fetch().then(function(links) {
       res.send(200, links.models);
     });
@@ -96,8 +96,8 @@ app.post('/links', restrict,
               url: uri,
               title: title,
               base_url: req.headers.origin,
-              //user_id: req.session.userId
-            })
+              user_id: req.session.userId
+            }.save())
             // link.save().then
             .then(function(newLink) {
               res.send(200, newLink);
@@ -184,7 +184,7 @@ app.post('/logIn', function(req, res) {
 
 app.get('/logOut', restrict,function(req, res) {
   req.session.destroy(function() {
-    console.log("Yo");
+    console.log("Logged out successfully!");
     res.redirect('/login');
 
   });
@@ -201,7 +201,8 @@ app.get('/*', function(req, res) {
     code: req.params[0]
   }).fetch().then(function(link) {
     if (!link) {
-      res.redirect('/');
+      res.status(404).send("Not found")
+      // res.redirect('/');
     } else {
       var click = new Click({
         link_id: link.get('id')
