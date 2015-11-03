@@ -1,7 +1,7 @@
 var db = require('../config');
 var bcrypt = require('bcrypt-nodejs');
 var Promise = require('bluebird');
-
+// Link
 
 
 var User = db.Model.extend({
@@ -9,22 +9,30 @@ var User = db.Model.extend({
 	hasTimestamps: true,
 
 	// links: function() {
-		// return this.hasMany(Link)
+	// return this.hasMany(Link)
 	// }
 
 	initialize: function() {
 		// bcrypt password
 
 		this.on('creating', function(model, attrs, options) {
-			var shasum = bcrypt.createHash('sha1');
-			shasum.update(model.get('url'));
-			model.set('code', shasum.digest('hex').slice(0, 5));
+			console.log(model);
+			// var shasum = bcrypt.createHash('sha1');
+			// shasum.update(model.get('url'));
+			// model.set('password', model.password);
+		});
+	},
+
+	comparePassword: function(password, cb) {
+		bcrypt.compare(password, this.get('password'), function(err, res) {
+			if (err) {
+				console.log("User's password didn't work!")
+				throw err;
+			}
+			cb(res);
 		});
 	}
-
-	// comparePassword
 
 });
 
 module.exports = User;
-

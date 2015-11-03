@@ -4,6 +4,7 @@ var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt-nodejs');
 var session = require('express-session');
+var $ = require('jquery');
 
 
 var db = require('./app/config');
@@ -32,13 +33,14 @@ app.use(express.static(__dirname + '/public'));
 // session
 var sess = {
   secret: 'keyboard cat',
-  cookie: {maxAge: 6000000}
+  cookie: {
+    maxAge: 6000000
+  }
 };
 app.use(session(sess));
 
 
 function restrict(req, res, next) {
-  console.log('session.use exists?', req.session.user);
   if (req.session.userId) {
     next();
   } else {
@@ -47,7 +49,6 @@ function restrict(req, res, next) {
   }
 }
 
-// app.all('*', restrict)
 
 app.get('/', restrict,
   function(req, res) {
@@ -96,7 +97,7 @@ app.post('/links', restrict,
               base_url: req.headers.origin,
               //user_id: req.session.userId
             })
-          // link.save().then
+            // link.save().then
             .then(function(newLink) {
               res.send(200, newLink);
             });
@@ -118,19 +119,24 @@ app.post('/signUp', function(req, res) {
   var password = req.body.password;
 
   // var user = new User({})
-  user.save().then(function(newUser) {
-    res.redirect('/login')
-  }) // catch...
+  // user.save().then(function(newUser) {
+  //   res.redirect('/login')
+  // }) // catch...
 
+  bcrypt.hash(password, null, null, function(err, hash) {
+    if (err) {
+      console.log(err);
+    }
+    var user = new User({
+      username: username,
+      password: hash
+    });
 
-  var salt = bcrypt.genSaltSync(10);
-  var hash = bcrypt.hashSync(password, salt);
-  var userObj = {
-    username: username,
-    password: hash
-  };
-  db.knex('users').insert(userObj);
-  res.redirect('/logIn');
+    user.save().then(function() {
+      console.log(db.knex('users').where('username', '=', username).select('password'));
+      return res.redirect('/login');
+    });
+  });
 });
 
 app.get('/logIn', function(req, res) {
@@ -141,7 +147,28 @@ app.post('/logIn', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
 
-
+  new User({
+    username: username
+  }).fetch().then(function(user) {
+    if (!user) {
+      console.log("User doesn't exist!");
+      res.redirect('/login');
+      // console.log("can you see me")
+    } else {
+      user.comparePassword(password, function(isTrue) {
+        if (isTrue) {
+          req.session.reload(function() {
+            req.session.userId = user.id;
+            res.redirect('/');
+          });
+          req.session.save();
+        } else {
+          console.log("Password is wrong");
+          res.redirect('/login');
+        }
+      });
+    }
+  });
   // new User.fetch()
   // user.comparePassword (then)
   // bcrypt.hash(this.get('password', null, null, function(err, hash) {
@@ -150,26 +177,9 @@ app.post('/logIn', function(req, res) {
   // }))
   // if same
   // req.session.generate(
-    // user ID)
-    // redirect /
-// else redirect login
-  var salt = bcrypt.genSaltSync(10);
-  var hash = bcrypt.hashSync(password, salt);
-  var userObj = db.knex('users').where({
-    username: username,
-    password: hash
-  });
-
-  if (userObj) {
-    req.session.reload(function() {
-      console.log("req.session exists?", req.session);
-      req.session.user = userObj.username;
-      res.redirect('/');
-    });
-    req.session.save();
-  } else {
-    res.redirect('/logIn');
-  }
+  // user ID)
+  // redirect /
+  // else redirect login
 });
 
 /************************************************************/
