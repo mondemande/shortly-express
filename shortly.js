@@ -76,7 +76,7 @@ function(req, res) {
 // Write your authentication routes here
 /************************************************************/
 
-
+// auth for user 
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
@@ -85,6 +85,7 @@ function(req, res) {
 /************************************************************/
 
 app.get('/*', function(req, res) {
+  console.log(req.params)
   new Link({ code: req.params[0] }).fetch().then(function(link) {
     if (!link) {
       res.redirect('/');
