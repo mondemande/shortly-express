@@ -33,23 +33,33 @@ app.use(express.static(__dirname + '/public'));
 var sess = {
   secret: 'keyboard cat',
   cookie: {}
-}
+};
 app.use(session(sess));
- 
 
 
+function restrict(req, res, next) {
+  console.log('session.use exists?', req.session.user)
+  if (req.session.user) {
+    next();
+  } else {
+    req.session.error = 'Access denied!';
+    res.redirect('/login');
+  }
+}
 
-app.get('/',
+// app.all('*', restrict)
+
+app.get('/', restrict,
   function(req, res) {
     res.render('index');
   });
 
-app.get('/create',
+app.get('/create', restrict,
   function(req, res) {
     res.render('index');
   });
 
-app.get('/links',
+app.get('/links', restrict,
   function(req, res) {
     Links.reset().fetch().then(function(links) {
       res.send(200, links.models);
@@ -58,7 +68,7 @@ app.get('/links',
 
 
 
-app.post('/links',
+app.post('/links', restrict,
   function(req, res) {
     var uri = req.body.url;
 
@@ -97,13 +107,20 @@ app.post('/links',
 /************************************************************/
 
 app.get('/signUp', function(req, res) {
-  console.log("signup!")
   res.render('signup')
 })
 
 app.post('/signUp', function(req, res) {
-  console.log("signup post")
-  res.send("hi!")
+  var username = req.body.username;
+  var password = req.body.password;
+  var salt = bcrypt.genSaltSync(10);
+  var hash = bcrypt.hashSync(password, salt);
+  var userObj = {
+    username: username,
+    password: hash
+  };
+  db.knex('users').insert(userObj);
+  res.redirect('/logIn')
 })
 
 app.get('/logIn', function(req, res) {
@@ -121,10 +138,12 @@ app.post('/logIn', function(req, res) {
   });
 
   if (userObj) {
-    req.session.regenerate(function() {
+    req.session.reload(function() {
+      console.log("req.session exists?", req.session)
       req.session.user = userObj.username;
       res.redirect('/');
     });
+    req.session.save();
   } else {
     res.redirect('/logIn');
   }

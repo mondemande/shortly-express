@@ -60,5 +60,7 @@ db.knex.schema.hasTable('users').then(function(exists) {
   }
 });
 
+db.knex('users').insert({username: "kim", password: "kim"});
+
 
 module.exports = db;
