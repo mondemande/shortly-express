@@ -1,7 +1,6 @@
-var Bookshelf = require('bookshelf');
 var path = require('path');
 
-var db = Bookshelf.initialize({
+var knex = require('knex')({
   client: 'sqlite3',
   connection: {
     host: '127.0.0.1',
@@ -13,13 +12,15 @@ var db = Bookshelf.initialize({
   }
 });
 
+var bookshelf = require('bookshelf')(knex);
+
 // db.knex.schema.dropTable('urls');
 // db.knex.schema.dropTable('clicks');
 // db.knex.schema.dropTable('users');
 
-db.knex.schema.hasTable('urls').then(function(exists) {
+knex.schema.hasTable('urls').then(function(exists) {
   if (!exists) {
-    db.knex.schema.createTable('urls', function (link) {
+    knex.schema.createTable('urls', function (link) {
       link.increments('id').primary();
       link.string('url', 255);
       link.string('base_url', 255);
@@ -34,9 +35,9 @@ db.knex.schema.hasTable('urls').then(function(exists) {
   }
 });
 
-db.knex.schema.hasTable('clicks').then(function(exists) {
+knex.schema.hasTable('clicks').then(function(exists) {
   if (!exists) {
-    db.knex.schema.createTable('clicks', function (click) {
+    knex.schema.createTable('clicks', function (click) {
       click.increments('id').primary();
       click.integer('link_id');
       click.timestamps();
@@ -52,9 +53,9 @@ db.knex.schema.hasTable('clicks').then(function(exists) {
 /************************************************************/
 
 
-db.knex.schema.hasTable('users').then(function(exists) {
+knex.schema.hasTable('users').then(function(exists) {
   if (!exists) {
-    db.knex.schema.createTable('users', function (click) {
+    knex.schema.createTable('users', function (click) {
       click.increments('id').primary();
       click.string('username');
       click.string('password')
@@ -65,4 +66,4 @@ db.knex.schema.hasTable('users').then(function(exists) {
   }
 });
 
-module.exports = db;
+module.exports = require('bookshelf')(knex);

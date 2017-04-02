@@ -92,16 +92,15 @@ app.post('/links', restrict,
             return res.send(404);
           }
 
-          Links.create({
-              url: uri,
+          var link = new Link({
+            url: uri,
               title: title,
               base_url: req.headers.origin,
               user_id: req.session.userId
-            }.save())
-            // link.save().then
-            .then(function(newLink) {
+          });
+          link.save().then(function(newLink) {
               res.send(200, newLink);
-            });
+          });
         });
       }
     });
