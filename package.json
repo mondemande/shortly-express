@@ -1,6 +1,9 @@
 {
   "name": "shortly-express",
   "version": "0.0.1",
+  "engines": {
+    "node": "6.11.1"
+  },
   "description": "shortly using express",
   "main": "shortly.js",
   "repository": "",
